@@ -4,6 +4,7 @@ import hmac
 import hashlib
 import random
 import time
+import unicodedata
 
 
 def _base32_secret_key():
@@ -33,7 +34,7 @@ class TOTP:
         part2 = '?secret=' + self.secret_key
         return base_url.format(part1, part2, part3)
 
-    def now(self):
+    def now(self, valid_counter=0):
         """
         생성되어 있는 OTP알고리즘의
         현재 암호값을 출력한다.
@@ -47,7 +48,7 @@ class TOTP:
 
         if timecode < 0:
             raise ValueError('input must be positive integer')
-        hasher = hmac.new(base64.b32decode(self.secret_key, casefold=True), self.int_to_bytestring(timecode), hashlib.sha1)
+        hasher = hmac.new(base64.b32decode(self.secret_key, casefold=True), self.int_to_bytestring(timecode+valid_counter), hashlib.sha1)
         hmac_hash = bytearray(hasher.digest())
         offset = hmac_hash[-1] & 0xf
         code = ((hmac_hash[offset] & 0x7f) << 24 |
@@ -71,6 +72,10 @@ class TOTP:
         return bytes(bytearray(reversed(result)))
 
     def is_true(self, password, valid_second=0):
-        if self.now() == password:
-            return True
+
+        for i in range(-valid_second, valid_second+1):
+            password = unicodedata.normalize('NFKC', str(password))
+            password_now = unicodedata.normalize('NFKC', self.now(i))
+            if hmac.compare_digest(password, password_now):
+                return True
         return False
