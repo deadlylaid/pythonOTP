@@ -6,6 +6,10 @@ def readme():
         descript = f.read()
     return descript
 
+tests_require = [
+        'pytest',
+        ]
+
 setup(
         name='pythonOTP',
         version='0.1',
@@ -17,6 +21,8 @@ setup(
 
         author='deadlylaid',
         author_email='deadlylaid@gamil.com',
+
+        tests_require=tests_require,
 
         packages=find_packages(),
         url='https://github.com/dealylaid/pythonOTP',
